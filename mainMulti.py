@@ -53,17 +53,18 @@ def uiProcess(image,ftDown1,ftDown2,pressLineDict1,pressLineDict2):
     if len(pressLineDict2)==5:
         image=drawPressArea(image, ftDown2,pressLineDict2)
     return image
-def pressLineCal(ftDown1,ftUp1,rangeIndex):#for position y: ftDown1<0,ftUp1<0,ftDown1<ftUp1
+
+def pressLineCal(ftDown1,ftUp1,rangeIndexList):#for position y: ftDown1<0,ftUp1<0,ftDown1<ftUp1
     pressLineDict={}
     for index,ftd in ftDown1.items():
-        print('pressLineCal',ftUp1[index][1],ftd[1],rangeIndex)
-        y_min=int(ftd[1]+(ftUp1[index][1]-ftd[1])*rangeIndex)
+        print('pressLineCal',index,ftUp1[index][1],ftd[1])
+        print(rangeIndexList[index])
+        y_min=int(ftd[1]+(ftUp1[index][1]-ftd[1])*rangeIndexList[index])
         pressLineDict[index]=y_min
     ftUp1={}
 
     ## only reset ftUp ,keep ftDown
     return pressLineDict,ftUp1
-
 
 
 def drawPressArea(image,ftDown1,pressLineDict1):#for position y: ftDown1<0,pressLineDict1<0,ftDown1<pressLineDict1
@@ -111,7 +112,7 @@ def keyboardResponse(prodecer,handKeypointer,
                 print('key1')
                 effect5.play()
     return ftDown1,ftDown2,ftUp1,ftUp2
-def loopRun(dataDeque,wSize,hSize,prodecer,handKeypointer,rangeIndex,skipFrame):
+def loopRun(dataDeque,wSize,hSize,prodecer,handKeypointer,rangeIndexList,skipFrame):
     # tip position of hand down
     ftDown1={}
     ftDown2={}
@@ -148,9 +149,9 @@ def loopRun(dataDeque,wSize,hSize,prodecer,handKeypointer,rangeIndex,skipFrame):
                                          ft1, ft2,ftDown1,ftDown2,ftUp1,ftUp2)
         ##
         if len(ftDown1)==5 and len(ftUp1)==5:
-            pressLineDict1, ftUp1=pressLineCal(ftDown1, ftUp1, rangeIndex)
+            pressLineDict1, ftUp1=pressLineCal(ftDown1, ftUp1, rangeIndexList)
         if len(ftDown2)==5 and len(ftUp2)==5:
-            pressLineDict2, ftUp2=pressLineCal(ftDown2, ftUp2, rangeIndex)
+            pressLineDict2, ftUp2=pressLineCal(ftDown2, ftUp2, rangeIndexList)
         # print('ppp', len(dataDeque), len(result))
         if len(dataDeque)==0 and len(result)==0:
             time.sleep(0.1)
@@ -173,17 +174,7 @@ def loopRun(dataDeque,wSize,hSize,prodecer,handKeypointer,rangeIndex,skipFrame):
             if num == 0:
                 T0 = time.time()
                 print('T0',T0,num*(1./FPS))
-            # print('ttttt', time.time() - T0 < num * (1. / FPS), len(result))
-            # if num%50!=0:
-            #
-            #     time.sleep(0.005)
-            #     print('continue to wait')
-            #     continue
-
         try:
-
-            ##
-
 
             image = uiProcess(image,ftDown1,ftDown2,pressLineDict1,pressLineDict2)
 
@@ -224,17 +215,10 @@ def loopRun(dataDeque,wSize,hSize,prodecer,handKeypointer,rangeIndex,skipFrame):
         frameShow(image, screen)
         #clear result
         result={}
-        print('result',len(result))
 
 
 if __name__=='__main__':
-    link='./pianoSound/hand6.mp4'
-    # link=0
-    wSize=800
-    hSize=450
-    rangeIndex=0.4
-    maxLen = 5000
-    skipFrmae=2
+    from initParam import link,wSize,hSize,rangeIndexList,maxLen,skipFrmae
     ft1=ft2=ftDown1=ftDown2=[]
     biasDict1=biasDict2= {}
     dataDeque = deque(maxlen=maxLen)
@@ -244,4 +228,4 @@ if __name__=='__main__':
     handKeypointer = handKeypoints(dataDeque, resultDeque,savePath='')
     producer.start()
     handKeypointer.start()
-    loopRun(resultDeque, wSize, hSize, producer,handKeypointer,rangeIndex,skipFrmae)
+    loopRun(resultDeque, wSize, hSize, producer,handKeypointer,rangeIndexList,skipFrmae)
